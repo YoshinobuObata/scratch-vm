@@ -31,7 +31,7 @@ class Scratch3Emo {
                     arguments: {
                         TEXT: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'a26fa13a-35f3-463e-b919-c4c6b97d9236'
+                            defaultValue: ' '
                         }
                     }
                 },
