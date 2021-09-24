@@ -27,7 +27,7 @@ class Scratch3Emo {
                 {
                     opcode: 'setRefreshAPIKey',
                     blockType: BlockType.REPORTER,
-                    text: 'Set Refresh API Key [TEXT]',
+                    text: 'リフレッシュキーを設定： [TEXT]',
                     arguments: {
                         TEXT: {
                             type: ArgumentType.STRING,
@@ -35,20 +35,20 @@ class Scratch3Emo {
                         }
                     }
                 },
-                {
-                    opcode: 'getRoomId',
-                    blockType: BlockType.REPORTER,
-                    text: 'Get Room Id',
-                },
+                // {
+                //     opcode: 'getRoomId',
+                //     blockType: BlockType.REPORTER,
+                //     text: 'Get Room Id',
+                // },
                 {
                     opcode: 'roomId',
                     blockType: BlockType.REPORTER,
-                    text: 'Room Id'
+                    text: '部屋のID'
                 },
                 {
                     opcode: 'sendText',
                     blockType: BlockType.COMMAND,
-                    text: 'Speak [TEXT]',
+                    text: '[TEXT]と言う',
                     arguments: {
                         TEXT: {
                             type: ArgumentType.STRING,
@@ -59,23 +59,22 @@ class Scratch3Emo {
                 {
                     opcode: 'getSensors',
                     blockType: BlockType.REPORTER,
-                    text: 'Get Room Sensor'
+                    text: 'センサ一覧取得'
                 },
                 {
-                    opcode: 'doMotion',
+                    opcode: 'moveHead',
                     blockType: BlockType.COMMAND,
-                    text: 'Motion: [TEXT]',
+                    text: '首の角度を変える 横 [ANGLE]度, 縦 [VERTICAL_ANGLE]度',
                     arguments: {
-                        TEXT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'UUID'
+                        ANGLE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        VERTICAL_ANGLE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
                         }
                     }
-                },
-                {
-                    opcode: 'bonboriShort',
-                    blockType: BlockType.REPORTER,
-                    text: 'ぼんぼりショート'
                 },
                 {
                     opcode: 'changeLed',
@@ -84,18 +83,34 @@ class Scratch3Emo {
                     arguments: {
                         RED: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '255'
+                            defaultValue: 255
                         },
                         GREEN: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '255'
+                            defaultValue: 255
                         },
                         BLUE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '255'
+                            defaultValue: 255
                         }
                     }
                 },
+                {
+                    opcode: 'doPreMotion',
+                    blockType: BlockType.COMMAND,
+                    text: 'プリセットモーション: [TEXT]',
+                    arguments: {
+                        TEXT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        }
+                    }
+                },
+                {
+                    opcode: 'bonboriShort',
+                    blockType: BlockType.REPORTER,
+                    text: 'ぼんぼりショート'
+                }
             ],
             menus: {
 
@@ -118,8 +133,9 @@ class Scratch3Emo {
             .then(res => res.text() )
             .then(body => {
                 const obj = JSON.parse(body)
-                console.log(obj.access_token)
+                // console.log(obj.access_token)
                 this._access_token = obj.access_token
+                this.getRoomId()
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -162,6 +178,34 @@ class Scratch3Emo {
             });
 
     }
+    moveHead( args ){
+        var angle = Cast.toNumber(args.ANGLE);
+        var vertical_angle = Cast.toNumber(args.VERTICAL_ANGLE);
+        const url = BASE_URL + "/v1/rooms/" + this._room_id +  "/motions/move_to"
+        if (-45 > angle) {
+            angle = -45
+        }else if (45 < angle) {
+            angle = 45
+        }
+        if (-20 > vertical_angle) {
+            angle = -20
+        }else if (20 < vertical_angle) {
+            angle = 20
+        }
+        
+        var pr = fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': '*/*',
+                'Authorization': 'Bearer ' + this._access_token,
+                'Content-Type': 'application/json'
+            },
+            body:  JSON.stringify({angle: angle, vertical_angle: vertical_angle})
+        })
+            .catch((error) => {
+                console.error('Error:', error);
+            });            
+    }
     // getMotions(){
     //     const url = BASE_URL + "/v1/motions"
     //     var pr = fetch(url, {
@@ -180,7 +224,7 @@ class Scratch3Emo {
     //             console.error('Error:', error);
     //         });
     // }
-    doMotion( args ){
+    doPreMotion( args ){
         const text = Cast.toString(args.TEXT);
         const url = BASE_URL + "/v1/rooms/" + this._room_id + "/motions/preset" 
 
